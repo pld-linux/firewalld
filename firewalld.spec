@@ -1,13 +1,11 @@
 Summary:	A firewall daemon with D-Bus interface providing a dynamic firewall
 Name:		firewalld
 Version:	0.4.2
-Release:	0.1
+Release:	1
 License:	GPL v2+
 Source0:	https://fedorahosted.org/released/firewalld/%{name}-%{version}.tar.bz2
 # Source0-md5:	21983c929bd5061df73408a11cb3a8fd
-Source1:	FedoraServer.xml
 Group:		Networking/Admin
-Source2:	FedoraWorkstation.xml
 Patch0:		MDNS-default.patch
 URL:		http://www.firewalld.org/
 BuildRequires:	desktop-file-utils
@@ -29,13 +27,11 @@ Suggests:	ipset
 Requires(post):	systemd
 Requires(preun):	systemd
 Requires(postun):	systemd
-Requires:	firewalld-config
-Requires:	firewalld-filesystem = %{version}-%{release}
 Requires:	python3-firewall = %{version}-%{release}
-Obsoletes:	firewalld-config-cloud <= 0.3.15
-Obsoletes:	firewalld-config-server <= 0.3.15
-Obsoletes:	firewalld-config-standard <= 0.3.15
-Obsoletes:	firewalld-config-workstation <= 0.3.15
+Obsoletes:	firewalld-config-cloud
+Obsoletes:	firewalld-config-server
+Obsoletes:	firewalld-config-standard
+Obsoletes:	firewalld-config-workstation
 BuildArch:	noarch
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -46,10 +42,10 @@ customizable firewall with a D-Bus interface.
 %package -n python-firewall
 Summary:	Python2 bindings for firewalld
 Group:		Libraries/Python
-Requires:	pygobject3-base
 Requires:	python-dbus
 Requires:	python-decorator
 Requires:	python-slip-dbus
+Requires:	python3-pygobject3
 Provides:	python2-firewall
 Obsoletes:	python2-firewall
 
@@ -61,30 +57,22 @@ Summary:	Python3 bindings for firewalld
 Group:		Libraries/Python
 Requires:	python3-dbus
 Requires:	python3-decorator
-Requires:	python3-pygobject
+Requires:	python3-pygobject3
 Requires:	python3-slip-dbus
 
 %description -n python3-firewall
 Python3 bindings for firewalld.
 
-%package -n firewalld-filesystem
-Summary:	Firewalld directory layout and rpm macros
-Group:		Base
-
-%description -n firewalld-filesystem
-This package provides directories and rpm macros which are required by
-other packages that add firewalld configuration files.
-
 %package -n firewall-applet
 Summary:	Firewall panel applet
 Group:		X11/Applications
 Requires:	%{name} = %{version}-%{release}
-Requires:	NetworkManager-glib
-Requires:	PyQt4
+Requires:	NetworkManager-libs
 Requires:	firewall-config = %{version}-%{release}
 Requires:	hicolor-icon-theme
 Requires:	libnotify
-Requires:	pygobject3-base
+Requires:	python-PyQt4
+Requires:	python3-pygobject3
 
 %description -n firewall-applet
 The firewall panel applet provides a status information of firewalld
@@ -94,51 +82,14 @@ and also the firewall settings.
 Summary:	Firewall configuration application
 Group:		Base
 Requires:	%{name} = %{version}-%{release}
-Requires:	NetworkManager-glib
+Requires:	NetworkManager-libs
 Requires:	gtk+3
 Requires:	hicolor-icon-theme
-Requires:	pygobject3-base
+Requires:	python-pygobject3
 
 %description -n firewall-config
 The firewall configuration application provides an configuration
 interface for firewalld.
-
-%package config-standard
-Summary:	Firewalld standard configuration settings
-Group:		Base
-Requires:	firewalld = %{version}-%{release}
-Provides:	firewalld-config
-Conflicts:	firewalld-config-server
-Conflicts:	firewalld-config-workstation
-Conflicts:	system-release-server
-Conflicts:	system-release-workstation
-
-%description config-standard
-Standard product firewalld configuration settings.
-
-%package config-server
-Summary:	Firewalld server configuration settings
-Group:		Base
-Requires:	firewalld = %{version}-%{release}
-Requires:	system-release-server
-Provides:	firewalld-config
-Conflicts:	firewalld-config-standard
-Conflicts:	firewalld-config-workstation
-
-%description config-server
-Server product specific firewalld configuration settings.
-
-%package config-workstation
-Summary:	Firewalld workstation configuration settings
-Group:		Base
-Requires:	firewalld = %{version}-%{release}
-Requires:	system-release-workstation
-Provides:	firewalld-config
-Conflicts:	firewalld-config-server
-Conflicts:	firewalld-config-standard
-
-%description config-workstation
-Workstation product specific firewalld configuration settings.
 
 %prep
 %setup -q
@@ -149,13 +100,13 @@ Workstation product specific firewalld configuration settings.
 	--enable-sysconfig \
 	--enable-rpmmacros \
 	--with-systemd-unitdir=%{systemdunitdir} \
-	--with-iptables=/usr/sbin/iptables \
-	--with-iptables-restore=/usr/sbin/iptables-restore \
-	--with-ip6tables=/usr/sbin/ip6tables \
-	--with-ip6tables-restore=/usr/sbin/ip6tables-restore \
-	--with-ebtables=/usr/sbin/ebtables \
-	--with-ebtables-restore=/usr/sbin/ebtables-restore \
-	--with-ipset=/usr/sbin/ipset \
+	--with-iptables=%{_sbindir}/iptables \
+	--with-iptables-restore=%{_sbindir}/iptables-restore \
+	--with-ip6tables=%{_sbindir}/ip6tables \
+	--with-ip6tables-restore=%{_sbindir}/ip6tables-restore \
+	--with-ebtables=%{_sbindir}/ebtables \
+	--with-ebtables-restore=%{_sbindir}/ebtables-restore \
+	--with-ipset=%{_sbindir}/ipset \
 	PYTHON=%{__python3}
 
 %install
@@ -186,30 +137,9 @@ desktop-file-install --delete-original \
 	$RPM_BUILD_ROOT%{_desktopdir}/firewall-config.desktop
 
 install -d $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/zones/
-install -c %{SOURCE1} $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/zones/FedoraServer.xml
-install -c %{SOURCE2} $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/zones/FedoraWorkstation.xml
 
-# standard firewalld.conf
-mv $RPM_BUILD_ROOT%{_sysconfdir}/firewalld/firewalld.conf \
-	$RPM_BUILD_ROOT%{_sysconfdir}/firewalld/firewalld-standard.conf
-ln -s firewalld-standard.conf $RPM_BUILD_ROOT%{_sysconfdir}/firewalld/firewalld.conf
-
-# server firewalld.conf
-cp -a $RPM_BUILD_ROOT%{_sysconfdir}/firewalld/firewalld-standard.conf \
-	$RPM_BUILD_ROOT%{_sysconfdir}/firewalld/firewalld-server.conf
-sed -i 's|^DefaultZone=.*|DefaultZone=FedoraServer|g' \
-	$RPM_BUILD_ROOT%{_sysconfdir}/firewalld/firewalld-server.conf
-
-# workstation firewalld.conf
-cp -a $RPM_BUILD_ROOT%{_sysconfdir}/firewalld/firewalld-standard.conf \
-	$RPM_BUILD_ROOT%{_sysconfdir}/firewalld/firewalld-workstation.conf
-sed -i 's|^DefaultZone=.*|DefaultZone=FedoraWorkstation|g' \
-	$RPM_BUILD_ROOT%{_sysconfdir}/firewalld/firewalld-workstation.conf
-
-ln -sf org.fedoraproject.FirewallD1.server.policy $RPM_BUILD_ROOT%{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy
-
-rm -f $RPM_BUILD_ROOT/usr/lib/firewalld/ipsets/README
-rm -f $RPM_BUILD_ROOT/usr/lib/rpm/macros.d/macros.firewalld
+rm -f $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/ipsets/README
+rm -f $RPM_BUILD_ROOT%{_prefix}/lib/rpm/macros.d/macros.firewalld
 
 %{__sed} -i -e '1s,^#!.*python,#!%{__python3},' $RPM_BUILD_ROOT{%{_sbindir},%{_bindir}}/*
 
@@ -235,39 +165,6 @@ rm -rf $RPM_BUILD_ROOT
 %postun
 %systemd_reload firewalld.service
 
-%posttrans
-# If we don't yet have a symlink or existing file for firewalld.conf,
-# create it. Note: this will intentionally reset the policykit policy
-# at the same time, so they are in sync.
-
-# Import %{_sysconfdir}/os-release to get the variant definition
-. %{_sysconfdir}/os-release || :
-
-if [ ! -e %{_sysconfdir}/firewalld/firewalld.conf ]; then
-	case "$VARIANT_ID" in
-		server)
-			ln -sf firewalld-server.conf %{_sysconfdir}/firewalld/firewalld.conf || :
-			;;
-		workstation)
-			ln -sf firewalld-workstation.conf %{_sysconfdir}/firewalld/firewalld.conf || :
-			;;
-		*)
-			ln -sf firewalld-standard.conf %{_sysconfdir}/firewalld/firewalld.conf
-			;;
-    esac
-fi
-
-if [ ! -e %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy ]; then
-	case "$VARIANT_ID" in
-		workstation)
-			ln -sf org.fedoraproject.FirewallD1.desktop.policy %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy || :
-			;;
-		*)
-			# For all other editions, we'll use the Server polkit policy
-			ln -sf org.fedoraproject.FirewallD1.server.policy %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy || :
-	esac
-fi
-
 %post -n firewall-applet
 %update_icon_cache hicolor
 
@@ -290,48 +187,6 @@ fi
 %update_icon_cache hicolor
 %glib_compile_schemas
 
-%post config-standard
-if [ $1 -eq 1 ]; then # Initial installation
-	# link standard config
-	rm -f %{_sysconfdir}/firewalld/firewalld.conf
-	ln -sf firewalld-standard.conf %{_sysconfdir}/firewalld/firewalld.conf || :
-fi
-
-%triggerin config-standard -- firewalld
-if [ $1 -eq 1 ]; then
-	# link server policy
-	rm -f %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy
-	ln -sf org.fedoraproject.FirewallD1.server.policy %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy || :
-fi
-
-%post config-server
-if [ $1 -eq 1 ]; then # Initial installation
-	# link server config
-	rm -f %{_sysconfdir}/firewalld/firewalld.conf
-	ln -sf firewalld-server.conf %{_sysconfdir}/firewalld/firewalld.conf || :
-fi
-
-%triggerin config-server -- firewalld
-if [ $1 -eq 1 ]; then
-	# link server policy
-	rm -f %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy
-	ln -sf org.fedoraproject.FirewallD1.server.policy %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy || :
-fi
-
-%post config-workstation
-if [ $1 -eq 1 ]; then # Initial installation
-	# link workstation config
-	rm -f %{_sysconfdir}/firewalld/firewalld.conf
-	ln -sf firewalld-workstation.conf %{_sysconfdir}/firewalld/firewalld.conf || :
-fi
-
-%triggerin config-workstation -- firewalld
-if [ $1 -eq 1 ]; then
-	# link desktop policy
-	rm -f %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy
-	ln -sf org.fedoraproject.FirewallD1.desktop.policy %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy || :
-fi
-
 %files -f %{name}.lang
 %defattr(644,root,root,755)
 %doc README
@@ -340,13 +195,18 @@ fi
 %attr(755,root,root) %{_bindir}/firewall-offline-cmd
 %dir %{bash_compdir}
 %{bash_compdir}/firewall-cmd
+%dir %{_prefix}/lib/firewalld
+%dir %{_prefix}/lib/firewalld/icmptypes
 %{_prefix}/lib/firewalld/icmptypes/*.xml
+%dir %{_prefix}/lib/firewalld/services
 %{_prefix}/lib/firewalld/services/*.xml
+%dir %{_prefix}/lib/firewalld/zones
 %{_prefix}/lib/firewalld/zones/*.xml
+%dir %{_prefix}/lib/firewalld/xmlschema
 %{_prefix}/lib/firewalld/xmlschema/*.xsd
 %attr(755,root,root) %{_prefix}/lib/firewalld/xmlschema/check.sh
 %dir %attr(750,root,root) %dir %{_sysconfdir}/firewalld
-%ghost %config(noreplace) %{_sysconfdir}/firewalld/firewalld.conf
+%config(noreplace) %{_sysconfdir}/firewalld/firewalld.conf
 %attr(750,root,root) %dir %{_sysconfdir}/firewalld/icmptypes
 %attr(750,root,root) %dir %{_sysconfdir}/firewalld/services
 %attr(750,root,root) %dir %{_sysconfdir}/firewalld/zones
@@ -356,7 +216,8 @@ fi
 %config(noreplace) /etc/dbus-1/system.d/FirewallD.conf
 %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.desktop.policy
 %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.server.policy
-%ghost %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy
+%{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy
+%dir %{_datadir}/firewalld
 %{_datadir}/%{name}/tests
 %{_mandir}/man1/firewall*cmd*.1*
 %{_mandir}/man1/firewalld*.1*
@@ -378,16 +239,6 @@ fi
 %files -n python3-firewall
 %defattr(644,root,root,755)
 %{py3_sitescriptdir}/firewall
-
-%files -n firewalld-filesystem
-%defattr(644,root,root,755)
-%dir %{_prefix}/lib/firewalld
-%dir %{_prefix}/lib/firewalld/icmptypes
-%dir %{_prefix}/lib/firewalld/services
-%dir %{_prefix}/lib/firewalld/zones
-%dir %{_prefix}/lib/firewalld/xmlschema
-%dir %{_datadir}/firewalld
-#%{_rpmconfigdir}/macros.d/macros.firewalld
 
 %files -n firewall-applet
 %defattr(644,root,root,755)
@@ -411,21 +262,3 @@ fi
 %{_iconsdir}/hicolor/*/apps/firewall-config*.*
 %{_datadir}/glib-2.0/schemas/org.fedoraproject.FirewallConfig.gschema.xml
 %{_mandir}/man1/firewall-config*.1*
-
-%files config-standard
-%defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/firewalld/firewalld-standard.conf
-#%ghost %config(noreplace) %{_sysconfdir}/firewalld/firewalld.conf
-#%ghost %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy
-
-%files config-server
-%defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/firewalld/firewalld-server.conf
-#%ghost %config(noreplace) %{_sysconfdir}/firewalld/firewalld.conf
-#%ghost %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy
-
-%files config-workstation
-%defattr(644,root,root,755)
-%config(noreplace) %{_sysconfdir}/firewalld/firewalld-workstation.conf
-#%ghost %config(noreplace) %{_sysconfdir}/firewalld/firewalld.conf
-#%ghost %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy
