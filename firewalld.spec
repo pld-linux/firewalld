@@ -193,7 +193,6 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_sbindir}/firewalld
 %attr(755,root,root) %{_bindir}/firewall-cmd
 %attr(755,root,root) %{_bindir}/firewall-offline-cmd
-%dir %{bash_compdir}
 %{bash_compdir}/firewall-cmd
 %dir %{_prefix}/lib/firewalld
 %dir %{_prefix}/lib/firewalld/icmptypes
