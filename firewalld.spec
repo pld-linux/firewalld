@@ -1,7 +1,7 @@
 Summary:	A firewall daemon with D-Bus interface providing a dynamic firewall
 Name:		firewalld
 Version:	0.4.2
-Release:	5
+Release:	6
 License:	GPL v2+
 Source0:	https://fedorahosted.org/released/firewalld/%{name}-%{version}.tar.bz2
 # Source0-md5:	21983c929bd5061df73408a11cb3a8fd
@@ -21,7 +21,6 @@ BuildRequires:	rpm-pythonprov
 BuildRequires:	rpmbuild(macros) >= 1.713
 BuildRequires:	sed >= 4.0
 BuildRequires:	systemd-units
-Requires:	ebtables
 Requires:	iptables
 Suggests:	ipset
 Requires(post):	systemd
