@@ -1,12 +1,11 @@
 Summary:	A firewall daemon with D-Bus interface providing a dynamic firewall
 Name:		firewalld
-Version:	0.4.2
-Release:	9
+Version:	1.2.0
+Release:	1
 License:	GPL v2+
-Source0:	https://fedorahosted.org/released/firewalld/%{name}-%{version}.tar.bz2
-# Source0-md5:	21983c929bd5061df73408a11cb3a8fd
+Source0:	https://github.com/firewalld/firewalld/releases/download/v%{version}/%{name}-%{version}.tar.gz
+# Source0-md5:	cbb120864ecb83544f7329c09367250f
 Group:		Networking/Admin
-Patch0:		MDNS-default.patch
 URL:		http://www.firewalld.org/
 BuildRequires:	desktop-file-utils
 BuildRequires:	docbook-style-xsl
@@ -70,7 +69,7 @@ Requires:	NetworkManager-libs
 Requires:	firewall-config = %{version}-%{release}
 Requires:	hicolor-icon-theme
 Requires:	libnotify
-Requires:	python-PyQt4
+Requires:	python3-PyQt5
 Requires:	python3-pygobject3
 
 %description -n firewall-applet
@@ -84,7 +83,7 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	NetworkManager-libs
 Requires:	gtk+3
 Requires:	hicolor-icon-theme
-Requires:	python-pygobject3
+Requires:	python3-pygobject3
 
 %description -n firewall-config
 The firewall configuration application provides an configuration
@@ -92,7 +91,6 @@ interface for firewalld.
 
 %prep
 %setup -q
-%patch0 -p1
 
 %build
 %configure \
@@ -137,8 +135,7 @@ desktop-file-install --delete-original \
 
 install -d $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/zones/
 
-rm -f $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/ipsets/README
-rm -f $RPM_BUILD_ROOT%{_prefix}/lib/rpm/macros.d/macros.firewalld
+%{__rm} $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/ipsets/README.md
 
 %{__sed} -i -e '1s,^#!.*python,#!%{__python3},' $RPM_BUILD_ROOT{%{_sbindir},%{_bindir}}/*
 
@@ -188,21 +185,21 @@ rm -rf $RPM_BUILD_ROOT
 
 %files -f %{name}.lang
 %defattr(644,root,root,755)
-%doc README
 %attr(755,root,root) %{_sbindir}/firewalld
 %attr(755,root,root) %{_bindir}/firewall-cmd
 %attr(755,root,root) %{_bindir}/firewall-offline-cmd
 %{bash_compdir}/firewall-cmd
 %dir %{_prefix}/lib/firewalld
+%dir %{_prefix}/lib/firewalld/helpers
+%{_prefix}/lib/firewalld/helpers/*.xml
 %dir %{_prefix}/lib/firewalld/icmptypes
 %{_prefix}/lib/firewalld/icmptypes/*.xml
+%dir %{_prefix}/lib/firewalld/policies
+%{_prefix}/lib/firewalld/policies/*.xml
 %dir %{_prefix}/lib/firewalld/services
 %{_prefix}/lib/firewalld/services/*.xml
 %dir %{_prefix}/lib/firewalld/zones
 %{_prefix}/lib/firewalld/zones/*.xml
-%dir %{_prefix}/lib/firewalld/xmlschema
-%{_prefix}/lib/firewalld/xmlschema/*.xsd
-%attr(755,root,root) %{_prefix}/lib/firewalld/xmlschema/check.sh
 %dir %attr(750,root,root) %dir %{_sysconfdir}/firewalld
 %config(noreplace) %{_sysconfdir}/firewalld/firewalld.conf
 %attr(750,root,root) %dir %{_sysconfdir}/firewalld/icmptypes
@@ -210,13 +207,15 @@ rm -rf $RPM_BUILD_ROOT
 %attr(750,root,root) %dir %{_sysconfdir}/firewalld/zones
 %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/firewalld/lockdown-whitelist.xml
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/firewalld
+%config(noreplace) %{_sysconfdir}/logrotate.d/firewalld
+%config(noreplace) %{_sysconfdir}/modprobe.d/firewalld-sysctls.conf
 %{systemdunitdir}/firewalld.service
-%config(noreplace) /etc/dbus-1/system.d/FirewallD.conf
-%{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.desktop.policy
-%{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.server.policy
+%{_datadir}/dbus-1/system.d/FirewallD.conf
+%{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.desktop.policy.choice
+%{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.server.policy.choice
 %{_datadir}/polkit-1/actions/org.fedoraproject.FirewallD1.policy
 %dir %{_datadir}/firewalld
-%{_datadir}/%{name}/tests
+%{_datadir}/%{name}/testsuite
 %{_mandir}/man1/firewall*cmd*.1*
 %{_mandir}/man1/firewalld*.1*
 %{_mandir}/man5/firewall*.5*
@@ -256,7 +255,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/firewalld/firewall-config.glade
 %{_datadir}/firewalld/gtk3_*
 %{_desktopdir}/firewall-config.desktop
-%{_datadir}/appdata/firewall-config.appdata.xml
+%{_datadir}/metainfo/firewall-config.appdata.xml
 %{_iconsdir}/hicolor/*/apps/firewall-config*.*
 %{_datadir}/glib-2.0/schemas/org.fedoraproject.FirewallConfig.gschema.xml
 %{_mandir}/man1/firewall-config*.1*
