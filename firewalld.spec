@@ -1,7 +1,7 @@
 Summary:	A firewall daemon with D-Bus interface providing a dynamic firewall
 Name:		firewalld
 Version:	1.2.0
-Release:	1
+Release:	2
 License:	GPL v2+
 Source0:	https://github.com/firewalld/firewalld/releases/download/v%{version}/%{name}-%{version}.tar.gz
 # Source0-md5:	cbb120864ecb83544f7329c09367250f
@@ -137,7 +137,8 @@ install -d $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/zones/
 
 %{__rm} $RPM_BUILD_ROOT%{_prefix}/lib/firewalld/ipsets/README.md
 
-%{__sed} -i -e '1s,^#!.*python,#!%{__python3},' $RPM_BUILD_ROOT{%{_sbindir},%{_bindir}}/*
+%{__sed} -E -i -e '1s,#!\s*/usr/bin/env\s+python(\s|$),#!%{__python3}\1,' \
+	-e '1s,#!\s*/usr/bin/python(\s|$),#!%{__python3}\1,' $RPM_BUILD_ROOT{%{_sbindir},%{_bindir}}/*
 
 %py_comp $RPM_BUILD_ROOT%{py_sitescriptdir}/firewall
 %py_ocomp $RPM_BUILD_ROOT%{py_sitescriptdir}/firewall
