@@ -1,7 +1,7 @@
 Summary:	A firewall daemon with D-Bus interface providing a dynamic firewall
 Name:		firewalld
 Version:	1.2.0
-Release:	2
+Release:	3
 License:	GPL v2+
 Source0:	https://github.com/firewalld/firewalld/releases/download/v%{version}/%{name}-%{version}.tar.gz
 # Source0-md5:	cbb120864ecb83544f7329c09367250f
